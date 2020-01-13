@@ -72,6 +72,34 @@ async function GoToOptionOfMenu(answer){
                 return;
             }
             console.log(stdout);
+            let customerChoosen = await takeInputOfUser('Choisissez un client : ');
+            exec('powershell ./display-vm-customer.ps1 -username '+customerChoosen, async (err, stdout, stderr) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log(stdout);
+                let vmchoosen4 = await takeInputOfUser('Choisissez la vm : ');
+                exec('powershell ./display-detail-vm.ps1 -username '+customerChoosen+" -name "+vmchoosen4, async (err, stdout, stderr) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    console.log(stdout);
+                    await takeInputOfUser("Appuyez sur Entrée pour retourner au menu principal...");
+                    main();
+                    //let customerChoosen = await takeInputOfUser('Choisissez la vm : ');
+                    //main();
+                });
+                //main();
+            });
+        });
+       /* exec('powershell ./list-user.ps1 ', async (err, stdout, stderr) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            console.log(stdout);
             console.log("");
             let customerChoosen = await takeInputOfUser('Choisissez un client : ');
             displayVmOfCustomer(customerChoosen);
@@ -87,53 +115,71 @@ async function GoToOptionOfMenu(answer){
                 console.log("Aucune action possible pour votre entrée");
                 break;
             }
-        });
+        });*/
         break;
         case "2":
         console.log("--> Supprimer une machine virtuelle");
         console.log("")
-        displayCustomers();
-        let customerChoosen2 = await takeInputOfUser('Choisissez un client : ');
-        listVmOfCustomerWithoutDetail(customerChoosen2);
-        let vmchoosen = await takeInputOfUser('Choisissez une vm à supprimer : ');
-        let confirm2 = await takeInputOfUser('Etes vous sûr de vouloir supprimer cette vm ? (O)/(N): ');
-        switch (confirm2) {
-            case "O":
-            console.log("Suppression de la vm ....")
-            console.log('Vm supprimée !');
-            break;
-            case "N":
-            console.log('Annulation de la suppression de la vm!');
-            break;
-            default:
-            console.log('Saisi incorrect !');
-            break;
-        }
-        await takeInputOfUser("Appuyez sur Entrée pour retourner au menu principal...");
-        main();
+        exec('powershell ./list-user.ps1 ', async (err, stdout, stderr) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            console.log(stdout);
+            let customerChoosen = await takeInputOfUser('Choisissez un client : ');
+            exec('powershell ./display-vm-customer.ps1 -username '+customerChoosen, async (err, stdout, stderr) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log(stdout);
+                let vmchoosen5 = await takeInputOfUser('Choisissez la vm : ');
+                exec('powershell ./delete-vm.ps1 -username '+customerChoosen+" -name "+vmchoosen5, async (err, stdout, stderr) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    console.log(stdout);
+                    await takeInputOfUser("Appuyez sur Entrée pour retourner au menu principal...");
+                    main();
+                    //let customerChoosen = await takeInputOfUser('Choisissez la vm : ');
+                    //main();
+                });
+                //main();
+            });
+        });
         break;
         case "3":
         console.log("--> Redémarrer une machine virtuelle");
         console.log("")
-        displayCustomers();
-        let customerChoosen3 = await takeInputOfUser('Choisissez un client : ');
-        listVmPoweredOfCustomerWithoutDetail(customerChoosen3);
-        let vmchoosen2 = await takeInputOfUser('Choisissez une vm à redémarrer : ');
-        let confirm3 = await takeInputOfUser('Etes vous sûr de vouloir redémarrer cette vm ? (O)/(N): ');
-        switch (confirm3) {
-            case "O":
-            console.log("Redémarrage de la vm ....")
-            console.log('Vm redémarrée !');
-            break;
-            case "N":
-            console.log('Annulation du rédémarrage de la vm!');
-            break;
-            default:
-            console.log('Saisi incorrect !');
-            break;
-        }
-        await takeInputOfUser("Appuyez sur Entrée pour retourner au menu principal...");
-        main();
+        exec('powershell ./list-user.ps1 ', async (err, stdout, stderr) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            console.log(stdout);
+            let customerChoosen = await takeInputOfUser('Choisissez un client : ');
+            exec('powershell ./display-vm-customer.ps1 -username '+customerChoosen, async (err, stdout, stderr) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                console.log(stdout);
+                let vmchoosen6 = await takeInputOfUser('Choisissez la vm : ');
+                exec('powershell ./restart-vm.ps1 -name '+vmchoosen6, async (err, stdout, stderr) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    console.log(stdout);
+                    await takeInputOfUser("Appuyez sur Entrée pour retourner au menu principal...");
+                    main();
+                    //let customerChoosen = await takeInputOfUser('Choisissez la vm : ');
+                    //main();
+                });
+                //main();
+            });
+        });
         break;
         case "4":
         console.log("--> Création d'une machine virtuelle");
