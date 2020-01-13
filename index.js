@@ -2,6 +2,8 @@
 /* Script IAAS */
 const readline = require('readline');
 var readlineSync = require('readline-sync');
+//const execSync = require('child_process').execSync;
+const { exec, spawn } = require('child_process');
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -14,8 +16,17 @@ main();
 
 function main()
 {
-    displayMenu();
-    chooseOptionOnMenu();
+    //exec('');
+    exec('powershell ./connect-vcenter.ps1', async (err, stdout, stderr) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.log(stdout);
+        displayMenu();
+        chooseOptionOnMenu();
+    });
+    
 }
 
 function displayMenu(){
@@ -33,6 +44,7 @@ function displayMenu(){
     console.log("5- Quitter");
     console.log("");
 }
+
 
 function chooseOptionOnMenu(){
     rl.question('Choisissez une option ? ', (answer) => {
@@ -54,21 +66,28 @@ async function GoToOptionOfMenu(answer){
         case "1":
         console.log("--> Afficher le status des machines virtuelles d'un client");
         console.log("")
-        displayCustomers();
-        let customerChoosen = await takeInputOfUser('Choisissez un client : ');
-        displayVmOfCustomer(customerChoosen);
-        let nextStep = await takeInputOfUser("(A) pour retourner à l'accueil et (L) pour lister à nouveaux les clients : ");
-        switch (nextStep) {
-            case "A":
-            main();
-            break;
-            case "L":
-            GoToOptionOfMenu("1");
-            break;
-            default:
-            console.log("Aucune action possible pour votre entrée");
-            break;
-        }
+        exec('powershell ./list-user.ps1 ', async (err, stdout, stderr) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            console.log(stdout);
+            console.log("");
+            let customerChoosen = await takeInputOfUser('Choisissez un client : ');
+            displayVmOfCustomer(customerChoosen);
+            let nextStep = await takeInputOfUser("(A) pour retourner à l'accueil et (L) pour lister à nouveaux les clients : ");
+            switch (nextStep) {
+                case "A":
+                main();
+                break;
+                case "L":
+                GoToOptionOfMenu("1");
+                break;
+                default:
+                console.log("Aucune action possible pour votre entrée");
+                break;
+            }
+        });
         break;
         case "2":
         console.log("--> Supprimer une machine virtuelle");
@@ -121,9 +140,9 @@ async function GoToOptionOfMenu(answer){
         await addVm();  
         break; 
         case "5":
-            console.log("Merci pour votre visite ! ");
-            rl.close();
-            break; 
+        console.log("Merci pour votre visite ! ");
+        rl.close();
+        break; 
         default:
         console.log(" Votre choix ne correspond à aucune option !");
         console.log(" Retour au Menu principal");
@@ -146,32 +165,50 @@ async function addVm(){
     let customerChoosen = await takeInputOfUser('Choisissez un client : ');
     let nameVm = await takeInputOfUser('Nom de la machine virtuelle: ');
     let ipVm = await takeInputOfUser('Ip: ');
-    displayTemplateVm();
-    let templateVm = await takeInputOfUser('Template Vm à utiliser : ');
-    let confirm = await takeInputOfUser('Ces informations sont elles exactes (O)/(N): ');
-    switch (confirm) {
-        case "O":
+    let templateVm;
+    //displayTemplateVm();
+    let confirm;
+    exec('powershell  ./display-vm-template.ps1', async (err, stdout, stderr) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.log(stdout);
+        templateVm = await takeInputOfUser('Template Vm à utiliser : ');
         console.log("Création de la vm pour le client ....")
-        await takeInputOfUser('Vm crée ! Appuyez sur Entrée pour retourner au menu principal...');
-        break;
-        case "N":
-        await takeInputOfUser('Annulation de la création de la vm du client ! Appuyez sur Entrée pour retourner au menu principal...');
-        break;
-        default:
-        await takeInputOfUser('Saisi incorrect ! Appuyez sur Entrée pour retourner au menu principal...');
-        break;
-    }
-    main();
+        exec('powershell ./create-vm.ps1 -templatevm '+templateVm+' -vmname '+nameVm+' -username '+ customerChoosen, async (err, stdout, stderr) => {
+            if (err) {
+                console.log("Une erreur s'est produite. Merci de réessayer !")
+                console.log(err);
+                return;
+            }
+            console.log(stdout);
+            await takeInputOfUser('Appuyez sur Entrée pour retourner au menu principal...');
+            main();
+           // break;
+        });
+    });
+    
+    
+    
 }
 async function addCustomer(){
     //let test = await rl.question("Essayons de prendre test: ");
     let username = await takeInputOfUser('Username du client : ');
-    let firstname = await takeInputOfUser('Prénom du client : ');
-    let lastname = await takeInputOfUser('Nom du client : ');
-    let password = await takeInputOfUser('Mot de passe : ');
+    //let firstname = await takeInputOfUser('Prénom du client : ');
+    //let lastname = await takeInputOfUser('Nom du client : ');   
+    //let confirm = await takeInputOfUser('Ces informations sont elles exactes (O)/(N): ');
+    exec('powershell ./create-user.ps1 -username '+username, async (err, stdout, stderr) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.log(stdout);
+        await takeInputOfUser('Appuyez sur Entrée pour retourner au menu principal...');
+        main();
+    });
     
-    let confirm = await takeInputOfUser('Ces informations sont elles exactes (O)/(N): ');
-    switch (confirm) {
+    /*switch (confirm) {
         case "O":
         console.log("Création du client ....")
         await takeInputOfUser('Client crée ! Appuyez sur Entrée pour retourner au menu principal...');
@@ -182,16 +219,24 @@ async function addCustomer(){
         default:
         await takeInputOfUser('Saisi incorrect ! Appuyez sur Entrée pour retourner au menu principal...');
         break;
-    }
-    main();
+    }*/
+    
 }
 function displayCustomers(){
     console.log("---- ALL CUSTOMERS ----");
     console.log("***********************");
+    exec('powershell ./list-user.ps1 ', (err, stdout, stderr) => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.log(stdout);
+    });
 }
 
 function displayVmOfCustomer(customer){
     console.log("Display VM for customer "+customer);
+    
 }
 
 function listVmOfCustomerWithoutDetail(customer)
@@ -207,4 +252,12 @@ function displayTemplateVm()
     console.log("");
     console.log("--> Display Vm template");
     console.log("");
+    exec('powershell  ./display-vm-template.ps1', async (err, stdout, stderr) => {
+        
+        if (err) {
+            console.error(err);
+            return;
+        }
+        console.log(stdout);
+    });
 }
