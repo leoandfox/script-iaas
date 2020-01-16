@@ -1,7 +1,0 @@
-
-param(
-[string]$username
-)
-Connect-VIServer -Server vcenter.cloudis.lan -User administrator@vsphere.local-Password Supinfo2019! 
-New-Folder -Name $username -Location (Get-Datacenter)[0]
-Disconnect-VIServer -Server vcenter.cloudis.lan 
